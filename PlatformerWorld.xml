@@ -5,6 +5,11 @@
     <link>https://github.com/RamiLego4Game/PlatformerWorld</link>
     <description>PlaformerWorld Dev</description>
     <item>
+      <title>0.3</title>
+      <link>https://github.com/RamiLego4Game/PlatformerWorld/releases/download/v0.3/PlatformerWorld-V0.3.zip</link>
+      <description>Added support for fusing.</description>
+    </item>
+    <item>
       <title>0.2</title>
       <link>https://github.com/RamiLego4Game/PlatformerWorld/releases/download/v0.2/PlatformerWorld-V0.2.zip</link>
       <description>Fixed the crash at the game startup.</description>
