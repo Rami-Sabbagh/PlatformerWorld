@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>PlatformerWorld</title>
+    <link>https://github.com/dan200/IndieLauncherExampleGame</link>
+    <description>PlatformerWorld is still under development.</description>
+    <item>
+      <title>0.1</title>
+      <link>https://raw.githubusercontent.com/dan200/IndieLauncherExampleGame/master/Downloads/ExampleGame1.0.zip</link>
+      <description>Added Water.</description>
+    </item>
+  </channel>
+</rss>

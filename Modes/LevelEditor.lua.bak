@@ -1,0 +1,324 @@
+--Author : Ramilego4Game - This File Is Part Of Platformer World--
+--Type : Class/Screen--
+--Imports--
+require "Modes.DGame"
+LevelEditor = class:new()
+
+function LevelEditor:init(map)
+  _Camera = camera:new()
+  self.fadeScreen, self.alpha, self.speed = true, 255, 25
+  
+  --love.physics.setMeter(64)
+  --_World =  love.physics.newWorld(0, 9.81*64, true)
+  
+  self.map = map or {}
+  self.encodedMap, self.LevelLoader = {}, LevelLoader:new()--_World)
+  self.encodedMap = LevelLoader:encodeMap(self.map)
+  
+  self:createTopBar()
+  
+  self:FillTilesList()
+end
+
+function LevelEditor:update(dt)
+  if love.mouse.isDown("l") and self.selected then
+    local X, Y = _Camera:mousepos()--love.mouse.getPosition()
+    X, Y = math.floor(X/70)*70, math.floor(Y/70)*70
+    if self.map[X] == nil then self.map[X] = {} end
+    if self.map[X][Y] == nil then self.map[X][Y] = {} end
+    if #self.map[X][Y] == 0 then self.map[X][Y][self.selected] = {} end
+    self.encodedMap = LevelLoader:encodeMap(self.map)
+  elseif love.mouse.isDown("m") then
+    local X, Y = _Camera:mousepos()--love.mouse.getPosition()
+    X, Y = math.floor(X/70)*70, math.floor(Y/70)*70
+    if self.map[X] ~= nil and self.map[X][Y] ~= nil then self.map[X][Y] = {} end
+    self.encodedMap = LevelLoader:encodeMap(self.map)
+  elseif love.mouse.isDown("r") then
+    local X, Y = love.mouse.getPosition()
+    if self.MPX ~= nil and self.MPY ~= nil and self.MPX ~= X and self.MPY ~= Y then
+      _Camera:lookAt(self.CMX-(X-self.MPX),self.CMY-(Y-self.MPY))
+    end
+  end
+  
+  
+end
+
+function LevelEditor:draw()
+  love.graphics.setColor(255,255,255,255)
+  UI:DrawBackground("Background")
+  _Camera:attach()
+  UI:DrawGuide()
+  if self.selected then
+    local X, Y = _Camera:mousepos()--love.mouse.getPosition()
+    X, Y = math.floor(X/70), math.floor(Y/70)
+    local marker = {}
+    marker.x = X*70
+    marker.y = Y*70
+    marker.color = {255,255,255,150}
+    _TilesList[self.selected]:DrawEditor(marker,self.encodedMap)
+  end
+  self.encodedMap = self.LevelLoader:drawEditorMap(self.encodedMap)
+  _Camera:detach()
+end
+
+function LevelEditor:fade()
+  if self.fadeScreen then
+    love.graphics.setColor(0,0,0,self.alpha)
+    love.graphics.rectangle("fill",0,0,_Width,love.graphics.getHeight())
+    self.alpha = self.alpha - self.speed
+    if self.alpha <= 0 then
+      self.fadeScreen = false
+      self.alpha = 255
+    end
+    love.graphics.setColor(255,255,255,255)
+  end
+end
+
+function LevelEditor:createTopBar()
+  if self.fr == nil then self.fr = {} end
+  self.fr.topBar = {}
+  
+  self.fr.topBar.Test = loveframes.Create("button")
+  self.fr.topBar.Test:SetPos(3,3):SetSize(64,24):SetText("Test")
+  self.fr.topBar.Test.OnClick = function(object)
+    self:Destroy()
+    mode = DGame:new(self.map)
+  end
+  
+  self.fr.topBar.Load = loveframes.Create("button")
+  self.fr.topBar.Load:SetPos(70,3):SetSize(64,24):SetText("Load")
+  self.fr.topBar.Load.OnClick = function(object)
+    self:createLoad()
+  end
+  
+  self.fr.topBar.Save = loveframes.Create("button")
+  self.fr.topBar.Save:SetPos(137,3):SetSize(64,24):SetText("Save")
+  self.fr.topBar.Save.OnClick = function(object)
+    self:createSave()
+  end
+  
+  self.fr.topBar.Modes = loveframes.Create("frame")
+  self.fr.topBar.Modes:SetDraggable(false):ShowCloseButton(false)
+  self.fr.topBar.Modes:SetSize(75,50):SetPos(_Width-75,0)
+  self.fr.topBar.Modes.Draw = function(object)
+    local X,Y = object:GetPos()
+    love.graphics.setColor(255,255,255,255)
+    UI:Draw("Editor-Modes-Panel-Dev",X,Y)
+  end
+  
+  self.fr.topBar.Menu = loveframes.Create("frame")
+  self.fr.topBar.Menu:SetDraggable(false):ShowCloseButton(false)
+  self.fr.topBar.Menu:SetSize(50,300):SetPos(_Width-50,50)
+  self.fr.topBar.Menu.Draw = function(object)
+    local X,Y = object:GetPos()
+    love.graphics.setColor(255,255,255,255)
+    UI:Draw("Editor-Tiles-Panel-2",X,Y)
+  end
+  
+  self.fr.topBar.TilesG = loveframes.Create("frame")
+  self.fr.topBar.TilesG:SetDraggable(false):ShowCloseButton(false):SetAlwaysOnTop(true)
+  self.fr.topBar.TilesG:SetSize(800,90):SetPos(_Width-34,62)
+  self.fr.topBar.TilesG.Draw = function(object)
+    local X,Y = object:GetPos()
+    love.graphics.setColor(255,255,255,255)
+    UI:Draw("Editor-Tiles-Bar-Ground",X,Y)
+  end
+  self.fr.topBar.TilesG.Update = function(object)
+    local X,Y = object:GetPos()
+    local Width,Height = object:GetSize()
+    if object.BarData == nil then
+      object.BarData = {}
+      object.BarData.OldX, object.BarData.OldY = object:GetPos()
+      object.BarData.Speed = 100
+      object.BarData.OrginX = 0
+      object.BarData.Hover = false
+    end
+    local hover = object:GetHover()
+    if object.BarData.Hover then
+      if object.BarData.OrginX < 350 then
+        object.BarData.OrginX = object.BarData.OrginX + object.BarData.Speed
+        if object.BarData.OrginX > 350 then object.BarData.OrginX = 350 end
+      end
+      object:SetX(object.BarData.OldX-object.BarData.OrginX)
+    end
+    if hover then
+      if object.BarData.OrginX < 350 then
+        object.BarData.OrginX = object.BarData.OrginX + object.BarData.Speed
+        if object.BarData.OrginX > 350 then object.BarData.OrginX = 350 end
+      end
+      object:SetX(object.BarData.OldX-object.BarData.OrginX)
+      object.BarData.Hover = true
+    else
+      if object.BarData.Hover and love.mouse.getX() >= X and love.mouse.getX() <= X+Width and love.mouse.getY() >= Y and love.mouse.getY() <= Y+Height then return else object.BarData.Hover = false end
+      if object.BarData.OrginX > 0 then
+        object.BarData.OrginX = object.BarData.OrginX - object.BarData.Speed
+        if object.BarData.OrginX < 0 then object.BarData.OrginX = 0 end
+      end
+      object:SetX(object.BarData.OldX-object.BarData.OrginX)
+    end
+  end
+  self.fr.topBar.TilesGList = loveframes.Create("list",self.fr.topBar.TilesG)
+  self.fr.topBar.TilesGList:SetPos(34,10):SetSize(350,90):SetDisplayType("horizontal")
+  self.fr.topBar.TilesGList:SetPadding(0):SetSpacing(10)
+  self.fr.topBar.TilesGList:SetSkin("Invisible")
+  self.fr.topBar.TilesGList.Update = function(object)
+    local vbar = object.vbar
+    local hbar = object.hbar
+    local internals  = object.internals
+    
+    if vbar or hbar then
+      local scrollbody = internals[1]
+      local scrollbutton1 = scrollbody.internals[2]
+      local scrollbutton2 = scrollbody.internals[3]
+      local scrollarea = scrollbody.internals[1]
+      local scrollbar = scrollarea.internals[1]
+      scrollbutton1.Draw = function(object) end
+      scrollbutton2.Draw = function(object) end
+      scrollbody.Draw = function(object) end
+      scrollarea.Draw = function(object) end
+      scrollbar.Draw = function(object) end
+    end
+  end
+end
+
+function LevelEditor:FillTilesList()
+  for k,v in pairs(_TilesList) do
+    local button = loveframes.Create("imagebutton")
+    button:SetImage(_Images[v.thumbnail or v.hover]):SizeToImage():SetText("")
+    button.OnClick = function(object)
+      self.selected = v.name
+      self.fr.topBar.TilesG.BarData.OrginX = 0
+      self.fr.topBar.TilesG.BarData.Hover = false
+    end
+    
+    local X = 0--button:GetX()+button:GetWidth()-10
+    local Y = 43--button:GetY()+button:GetHeight()-10
+    
+    --[[local tooltip = loveframes.Create("tooltip")
+    tooltip:SetObject(button):SetOffsets(X,Y):SetText(v.name or "Unkown")]]--
+    
+    self.fr.topBar.TilesGList:AddItem(button)
+    
+    button, tooltip = nil, nil
+  end
+end
+
+function LevelEditor:createLoad()
+  if self.fr.loadFrame then
+    self.fr.loadFrame:Remove()
+    self.fr.loadFrame = nil
+  end
+  self.fr.loadFrame = loveframes.Create("frame")
+  self.fr.loadFrame:SetSize(200,300):SetPos(_Width/2,love.graphics.getHeight()/2,true):SetName("Load Level")
+  
+  self.fr.loadList = loveframes.Create("columnlist",self.fr.loadFrame)
+  self.fr.loadList:SetPos(5,30):SetSize(190,265):AddColumn("Level Name")
+  self:fillLevels(self.fr.loadList)
+  self.fr.loadList.OnRowSelected = function(parent, row, data)
+    self:loadLevel(data[1])
+    if self.fr.loadFrame then
+      self.fr.loadFrame:Remove()
+      self.fr.loadFrame = nil
+    end
+  end
+end
+
+function LevelEditor:createSave()
+  if self.fr.saveFrame then
+    self.fr.saveFrame:Remove()
+    self.fr.saveFrame = nil
+  end
+  self.fr.saveFrame = loveframes.Create("frame")
+  self.fr.saveFrame:SetSize(200,300):SetPos(_Width/2,love.graphics.getHeight()/2,true):SetName("Save Level")
+  
+  self.fr.saveList = loveframes.Create("columnlist",self.fr.saveFrame)
+  self.fr.saveList:SetPos(5,30):SetSize(190,211):AddColumn("Level Name")
+  self:fillLevels(self.fr.saveList)
+  self.fr.saveList.OnRowSelected = function(parent, row, data)
+    self:saveLevel(data[1])
+    if self.fr.saveFrame then
+      self.fr.saveFrame:Remove()
+      self.fr.saveFrame = nil
+    end
+  end
+  
+  self.fr.saveText = loveframes.Create("textinput",self.fr.saveFrame)
+  self.fr.saveText:SetPos(5,243):SetSize(190,25):SetPlaceholderText("Level Name")
+  self.fr.saveText.OnEnter = function(object, text)
+    self:saveLevel(text)
+    if self.fr.saveFrame then
+      self.fr.saveFrame:Remove()
+      self.fr.saveFrame = nil
+    end
+  end
+  self.fr.saveText.OnTextChanged = function(object, text)
+    self.fr.saveButton:SetClickable(true)
+  end
+  
+  self.fr.saveButton = loveframes.Create("button",self.fr.saveFrame)
+  self.fr.saveButton:SetPos(5,270):SetSize(190,25):SetText("Save Level"):SetClickable(false)
+  self.fr.saveButton.OnClick = function(object)
+    self:saveLevel(self.fr.saveText:GetValue())
+    if self.fr.saveFrame then
+      self.fr.saveFrame:Remove()
+      self.fr.saveFrame = nil
+    end
+  end
+end
+
+function LevelEditor:saveLevel(name)
+  local workingDir = love.filesystem.getWorkingDirectory()
+  table.save(self.map,workingDir.."/Levels/"..name..".level")
+end
+
+function LevelEditor:loadLevel(name)
+  local workingDir = love.filesystem.getWorkingDirectory()
+  self.map = table.load(workingDir.."/Levels/"..name..".level")
+  self.encodedMap = LevelLoader:encodeMap(self.map)
+end
+
+function LevelEditor:fillLevels(object)
+  local files = loveframes.util.GetDirectoryContents("Levels/")
+  for k, v in ipairs(files) do
+    if v.extension == "level" then
+      object:AddRow(v.name)
+    end
+  end
+end
+
+function LevelEditor:Destroy()
+  if self.fr then
+    if self.fr.topBar then
+      for k,v in pairs(self.fr.topBar) do
+        v:Remove()
+        self.fr.topBar[k] = nil
+      end
+      self.fr.topBar = nil
+    end
+    for k,v in pairs(self.fr) do
+        v:Remove()
+        self.fr[k] = nil
+    end
+  end
+  _Camera = nil
+end
+
+function LevelEditor:mousepressed(x,y,button)
+  self.MPX, self.MPY = x, y
+  self.CMX, self.CMY = _Camera:pos()
+end
+
+function LevelEditor:mousereleased(x,y,button)
+  if self.MPX == x and self.MPY == y then
+    if button == "r" and self.selected then
+      self.selected = nil
+    end
+  end
+  self.MPX, self.MPY = nil, nil
+end
+
+function LevelEditor:keypressed(key, isrepeat)
+  if key == "c" then
+    _Camera:lookAt(love.gra,y)
+  end
+end
