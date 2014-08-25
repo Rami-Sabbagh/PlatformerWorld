@@ -5,6 +5,11 @@
     <link>https://github.com/dan200/IndieLauncherExampleGame</link>
     <description>PlatformerWorld is still under development.</description>
     <item>
+      <title>0.2</title>
+      <link>https://github.com/RamiLego4Game/PlatformerWorld/releases/download/v0.2/PlatformerWorld-V0.2.zip</link>
+      <description>Fixed the crash at the game startup.</description>
+    </item>
+    <item>
       <title>0.1</title>
       <link>https://github.com/RamiLego4Game/PlatformerWorld/releases/download/v0.1/PlatformerWorld-0.1.zip</link>
       <description>Added Water.</description>
