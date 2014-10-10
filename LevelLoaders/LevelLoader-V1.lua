@@ -5,26 +5,18 @@ LevelLoader = class:new()
 function LevelLoader:init(world)
   self.world = world
   self.map = {}
-  self.tilesmap = JSON:decode(_rawJData["Tiles"])
-  self.tilesbatch = love.graphics.newSpriteBatch(_Images["Tiles"],3000)
-  self.tilesSheet = {}
-  for k,v in pairs(self.tilesmap.frames) do
-    self.tilesSheet[v.filename] = v.frame
-  end
-  self.mapsize = {width=_Images["Tiles"]:getWidth(),height=_Images["Tiles"]:getHeight()}
 end
 
-function LevelLoader:buildMapBatch()
-  self.tilesbatch:clear()
-  self.tilesbatch:bind()
+--This function will draw the map that it's loaded with LevelLoader:loadMap(map)
+function LevelLoader:drawMap()
   for x,yC in pairs(self.map) do
     if yC ~= nil then
       for y,Objects in pairs(yC) do
         if Objects ~= nil then
           for k,object in pairs(Objects) do
-            if object.marker ~= nil and object.tile ~= nil and object.tile.buildbatch ~= nil then
+            if object.marker ~= nil and object.tile ~= nil and object.tile.draw ~= nil then
               if not object.tile.dynamic and object.tile.category == "Decor" then
-                self.map[x][y][k].tile:buildbatch(object.marker,self.map,self.tilesbatch,self.tilesSheet,self.mapsize)
+                self.map[x][y][k].tile:draw(object.marker,self.map)
               end
             end
           end
@@ -38,9 +30,9 @@ function LevelLoader:buildMapBatch()
       for y,Objects in pairs(yC) do
         if Objects ~= nil then
           for k,object in pairs(Objects) do
-            if object.marker ~= nil and object.tile ~= nil and object.tile.buildbatch ~= nil then
+            if object.marker ~= nil and object.tile ~= nil and object.tile.draw ~= nil then
               if not object.tile.dynamic and object.tile.category ~= "Decor" then
-                self.map[x][y][k].tile:buildbatch(object.marker,self.map,self.tilesbatch,self.tilesSheet,self.mapsize)
+                self.map[x][y][k].tile:draw(object.marker,self.map)
               end
             end
           end
@@ -48,12 +40,6 @@ function LevelLoader:buildMapBatch()
       end
     end
   end
-  self.tilesbatch:unbind()
-end
-
---This function will draw the map that it's loaded with LevelLoader:loadMap(map)
-function LevelLoader:drawMap()
-  love.graphics.draw(self.tilesbatch,0,0)
   
   for x,yC in pairs(self.map) do
     if yC ~= nil then
@@ -110,9 +96,8 @@ end
 --This function will encode the map that it's passed as a parameter
 function LevelLoader:encodeMap(map)
   local encodedMap = {}
-  if not map or not map.meta or not map.meta.ver or map.meta.ver ~= "V1.5" then return error("The map is outdated !") end
   for x,xC in pairs(map) do
-    if type(map[x]) ~= nil and x ~= "meta" then
+    if type(map[x]) ~= nil then
       for y,yC in pairs(map[x]) do
         if map[x][y] ~= nil then
           for k,v in pairs(map[x][y]) do

@@ -119,7 +119,7 @@ function Loader:load(FilePath,Name,FontSize,SpecialRequest,Prefix)
 
 	---make a special exception not to mipmap UI
 	if(Type == "Image")then 
-		if(FilePath:find("Lib/UI") == 1)then _IsUI[Name] = true end
+		--if(FilePath:find("Lib/UI") == 1)then _IsUI[Name] = true end
 	end
 
 	

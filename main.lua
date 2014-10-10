@@ -1,34 +1,43 @@
 --Platformer World By RamiLego4Game--
 --Imports--
---require "Engine.Monocle"
-_LoveBird = require "Engine.lovebird"
---[[Monocle.new({
-  isActive=false,          -- Whether the debugger is initially active
-})]]--
 Loader = require "Engine.Loader"
+JSON = require "Engine.JSON"
 
 require "Engine.loveframes"
 require "Engine.Class"
 require "Engine.TableSerializer"
+require "Engine.AndroidTouch"
   
 --Classess Importes--
 require "Engine.UI"
 require "Engine.HUD"
 require "Engine.B2Object"
 require "Engine.Player"
+require "Engine.Joystick"
 require "Engine.LevelLoader"
 require "Engine.Camera"
 require "Modes.Splash"
 
 _Images,_Sounds,_Fonts,_ImageDatas,_rawJData,_rawINIData,_ImageQualities,_TEXTUREQUALITY = {},{},{},{},{},{},{},"High"
-
+_SaveDir = love.filesystem.getSaveDirectory().."/"
 _Keys = {}
 
-function love.load()
-  --if arg[#arg] == "-debug" then require("mobdebug").start() end
-  --require("mobdebug").off()
+function love.load(arg)
+  if arg[3] == "-debug" then _LoveBird = require "Engine.lovebird" end
+  if arg[2] == "-android" then _AndroidDebug = true end
   _Width, _Height = love.graphics.getWidth(), love.graphics.getHeight()
-  --Monocle.watch("FPS",  function() return math.floor(1/love.timer.getDelta()) end)
+  
+  if not love.filesystem.exists("/Levels/") then
+    love.filesystem.createDirectory("/Levels/")
+    local copyLevels = function(filename)
+      local content = love.filesystem.read( "/EmbededLevels/"..filename )
+      love.filesystem.write( "/Levels/"..filename , content )
+    end
+    love.filesystem.getDirectoryItems( "/EmbededLevels/", copyLevels )
+  end
+  
+  DroidTouch = AndroidTouch:new()
+  
   UI = UI:new()
   mode = Splash:new()
 end
@@ -43,28 +52,23 @@ function love.draw()
     switch = mode:fade()
     if switch then mode = switch end
   end
-  --Monocle.draw()
 end
 
-function love.update(dt)
-  --mouseutil:update()
-  --[[for Key,Time in pairs(_Keys) do
-    if _Keys[Key] ~= nil then
-      _Keys[Key] = _Keys[Key] + round(dt,3)
-    end
-  end]]--
+function love.update(dt) 
+  if _AndroidDebug and DroidTouch.Touches[1] then
+    local x,y = love.mouse.getPosition()
+    DroidTouch:touchmoved(1,x,y)
+  end
   
 	if mode.update then
     switch = mode:update(dt)
     if switch then mode = switch end
   end
   loveframes.update(dt)
-  --Monocle.update()
-  _LoveBird.update()
+  if _LoveBird then _LoveBird.update() end
 end
 
 function love.mousefocus( focus )
-  --mouseutil:mousefocus( focus )
   if mode.mousefocus then
     switch = mode:mousefocus( focus )
     if switch then mode = switch end
@@ -72,23 +76,48 @@ function love.mousefocus( focus )
 end
 
 function love.mousepressed( x, y, button )
-  --mouseutil:mousepressed( x, y, button )
-  if mode.mousepressed then
+  if mode.mousepressed and love.system.getOS() ~= "Android" and not _AndroidDebug then
     switch = mode:mousepressed( x, y, button )
     if switch then mode = switch end
   end
+  if _AndroidDebug then DroidTouch:touchpressed( 1, x, y ) end
   
   loveframes.mousepressed(x, y, button)
 end
 
 function love.mousereleased( x, y, button )
-  --mouseutil:mousereleased( x, y, button )
-  if mode.mousereleased then
+  if mode.mousereleased and love.system.getOS() ~= "Android" and not _AndroidDebug then
     switch = mode:mousereleased( x, y, button )
     if switch then mode = switch end
   end
+  if _AndroidDebug then DroidTouch:touchreleased( 1, x, y ) end
   
   loveframes.mousereleased(x, y, button)
+end
+
+function love.touchpressed( id, x, y )
+  x = math.floor(_Width*x)
+  y = math.floor(_Height*y)
+  DroidTouch:touchpressed( id, x, y )
+end
+
+function love.touchmoved( id, x, y )
+  x = math.floor(_Width*x)
+  y = math.floor(_Height*y)
+  DroidTouch:touchmoved( id, x, y )
+end
+
+function love.touchreleased( id, x, y )
+  x = math.floor(_Width*x)
+  y = math.floor(_Height*y)
+  DroidTouch:touchreleased( id, x, y )
+end
+
+function love.touch(touch)
+  if mode.touch then
+    switch = mode:touch(touch)
+    if switch then mode = switch end
+  end
 end
 
 function love.keypressed(key, isrepeat)
@@ -100,8 +129,6 @@ function love.keypressed(key, isrepeat)
   end
   
   loveframes.keypressed(key, isrepeat)
-  
-  --Monocle.keypressed(key, isrepeat)
 end
  
 function love.keyreleased(key)
@@ -122,8 +149,6 @@ function love.textinput(text)
   end
   
   loveframes.textinput(text)
-  
-  --Monocle.textinput(text)
 end
 
 function round(num, idp)

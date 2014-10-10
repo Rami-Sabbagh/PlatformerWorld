@@ -8,10 +8,10 @@ function LevelEditor:init(map)
   _Camera = camera:new()
   self.fadeScreen, self.alpha, self.speed, self.guide, self.checkhover = true, 255, 25, true, true
   
-  self.map = map or {}
+  self.map = map or {meta={ver="V1.5"}}
   self.encodedMap, self.LevelLoader = {}, LevelLoader:new()
-  self.encodedMap = LevelLoader:encodeMap(self.map)
-  
+  self.encodedMap = self.LevelLoader:encodeMap(self.map)
+  self.touchdata = {}
   self:createTopBar()
   
   self:FillTilesList("Ground")
@@ -167,7 +167,7 @@ function LevelEditor:createTopBar()
     local hbar = object.hbar
     local internals  = object.internals
     
-    if vbar or hbar then
+    if (vbar or hbar) and not(love.system.getOS() == "Android" or _AndroidDebug) then
       local scrollbody = internals[1]
       local scrollbutton1 = scrollbody.internals[2]
       local scrollbutton2 = scrollbody.internals[3]
@@ -232,7 +232,7 @@ function LevelEditor:createTopBar()
     local hbar = object.hbar
     local internals  = object.internals
     
-    if vbar or hbar then
+    if (vbar or hbar) and not(love.system.getOS() == "Android" or _AndroidDebug) then
       local scrollbody = internals[1]
       local scrollbutton1 = scrollbody.internals[2]
       local scrollbutton2 = scrollbody.internals[3]
@@ -244,6 +244,25 @@ function LevelEditor:createTopBar()
       scrollarea.Draw = function(object) end
       scrollbar.Draw = function(object) end
     end
+  end
+  
+  if not(love.system.getOS() == "Android" or _AndroidDebug) then return end
+  self.fr.zoomIN = loveframes.Create("imagebutton")
+  self.fr.zoomIN:SetImage(_Images["ZoomIN"])
+  self.fr.zoomIN:SizeToImage()
+  self.fr.zoomIN:SetText("")
+  self.fr.zoomIN:SetPos(_Width-137,2)
+  self.fr.zoomIN.OnClick = function(object,x,y)
+    if _Camera.scale < 1 then _Camera:zoomTo(_Camera.scale+0.1) end
+  end
+  
+  self.fr.zoomOUT = loveframes.Create("imagebutton")
+  self.fr.zoomOUT:SetImage(_Images["ZoomOUT"])
+  self.fr.zoomOUT:SizeToImage()
+  self.fr.zoomOUT:SetText("")
+  self.fr.zoomOUT:SetPos(_Width-194,2)
+  self.fr.zoomOUT.OnClick = function(object,x,y)
+    if _Camera.scale > 0.2 then _Camera:zoomTo(_Camera.scale-0.1) end
   end
 end
 
@@ -335,16 +354,17 @@ function LevelEditor:createSave()
 end
 
 function LevelEditor:saveLevel(name)
-  local workingDir = love.filesystem.getWorkingDirectory()
-  table.save(self.map,workingDir.."/Levels/"..name..".level")
+  --local workingDir = love.filesystem.getWorkingDirectory()
+  table.save(self.map,_SaveDir.."/Levels/"..name..".level")
 end
 
 function LevelEditor:loadLevel(name)
-  local workingDir = love.filesystem.getWorkingDirectory()
-  self.map = table.load(workingDir.."/Levels/"..name..".level")
+  --local workingDir = love.filesystem.getWorkingDirectory()
+  self.map = table.load(_SaveDir.."/Levels/"..name..".level")
+  if not self.map.meta then self.map.meta = {ver="V1.5"} end
   self.encodedMap = LevelLoader:encodeMap(self.map)
   _Camera:zoomTo(1)
-  _Camera:lookAt(_Width/2,_Height/2)
+  _Camera:lookAt(1000/2,700/2)
 end
 
 function LevelEditor:fillLevels(object)
@@ -401,5 +421,25 @@ function LevelEditor:keypressed(key, isrepeat)
     _Camera:lookAt(_Width/2,_Height/2)
   elseif key == "g" and not self.hover then
     self.guide = not self.guide
+  end
+end
+
+function LevelEditor:touch(touch)
+  if not self.touchdata.cam then self.touchdata.cam = {} end
+  if not self.touchdata.cam.id and touch.state == BEGAN then self.touchdata.cam.id = touch.id end
+  if touch.id == self.touchdata.cam.id then
+    if touch.state == BEGAN then
+      self.touchdata.cam.MPX, self.touchdata.cam.MPY = touch.x, touch.y
+      self.touchdata.cam.CMX, self.touchdata.cam.CMY = _Camera:pos()
+    elseif touch.state == MOVED then
+      local X,Y = _Camera:worldCoords(touch.x,touch.y)
+      local MPX, MPY = _Camera:worldCoords(self.touchdata.cam.MPX, self.touchdata.cam.MPY)
+      _Camera:lookAt(self.touchdata.cam.CMX-(X-MPX),self.touchdata.cam.CMY-(Y-MPY))
+    elseif touch.state == ENDED then
+      local X,Y = _Camera:worldCoords(touch.x,touch.y)
+      local MPX, MPY = _Camera:worldCoords(self.touchdata.cam.MPX, self.touchdata.cam.MPY)
+      _Camera:lookAt(self.touchdata.cam.CMX-(X-MPX),self.touchdata.cam.CMY-(Y-MPY))
+      self.touchdata.cam = {}
+    end
   end
 end

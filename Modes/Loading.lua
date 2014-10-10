@@ -6,7 +6,7 @@ require 'Modes.LevelEditor'
 Loading = class:new()
 
 function Loading:init()
-  --self.LOGO = love.graphics.newImage("assets/textures/gui/SSHWorld-LOGO.png")
+  self.LOGO = love.graphics.newImage("Lib/RL4G/Platformerworld-LOGO.png")
   --self.BG = love.graphics.newImage("assets/textures/gui/Loading-Background.png")
   
   self.alpha = 255
@@ -24,10 +24,11 @@ function Loading:init()
     end
   end
   Loader:LoadFolder("Lib/RL4G/")
+  if love.system.getOS() == "Android" or _AndroidDebug then Loader:LoadFolder("Lib/Android/") end
   
   self.progbar = loveframes.Create("progressbar")
-  self.progbar:SetPos(_Width/2-250,_Height/2+25):SetLerp(false):SetLerpRate(10)
-  self.progbar:SetWidth(500):SetMinMax(0,100):SetText("0%")
+  self.progbar:SetWidth(_Width/3):SetMinMax(0,100):SetText("0%")
+  self.progbar:SetPos(_Width/2,_Height/2+80,true):SetLerp(false):SetLerpRate(10)
   self.progbar.OnComplete = function(object)
     self.done = true
     _Loaded = true
@@ -42,6 +43,7 @@ function Loading:init()
       end
     end
   end
+  love.graphics.setBackgroundColor(208,244,247,255)
 end
 
 function Loading:update()
@@ -55,9 +57,8 @@ function Loading:draw()
     self.progbar:Remove()
     return LevelEditor:new()
   end
-  --love.graphics.setColor(255,255,255,255)
-  --love.graphics.draw(self.BG,0,0,0,_Width/self.BG:getWidth(),_Height/self.BG:getHeight())
-  --love.graphics.draw(self.LOGO,_Width/2,_Height/2-25,0,0.5,0.5,self.LOGO:getWidth()/2,self.LOGO:getHeight()/2)
+  love.graphics.setColor(255,255,255,255)
+  love.graphics.draw(self.LOGO,_Width/2,_Height/2,0,1,1,self.LOGO:getWidth()/2,self.LOGO:getHeight()/2)
 end
 
 function Loading:fade()

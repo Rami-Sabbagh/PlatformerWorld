@@ -3,8 +3,8 @@
 Player = class:new()
 
 function Player:init(X,Y,Num,Key)
-  self.X = UI:forceNum(X) or _Width/2
-  self.Y = UI:forceNum(Y) or _Height/2
+  self.X = UI:forceNum(X) or 500
+  self.Y = UI:forceNum(Y) or 350
   self.Num = UI:forceNum(Num) or 1
   self.Key = UI:forceNum(Key) or self.Num
   
@@ -12,6 +12,7 @@ function Player:init(X,Y,Num,Key)
   self.KeySet[1] = { up = "up", down = "down", left = "left", right = "right" }
   self.KeySet[2] = { up = "w", down = "s", left = "a", right = "d" }
   self.KeySet[3] = { up = "i", down = "k", left = "j", right = "l" }
+  self.KeySet[4] = { up = "joyup", down = "joydown", left = "joyleft", right = "joyright" }
   
   self.Shape = { State = "front", Flip = false, Walk = false, WalkTimer = 0, WalkSpeed = -1, OrginX = 0, OrginY = 0 }
   

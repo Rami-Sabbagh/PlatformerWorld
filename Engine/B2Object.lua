@@ -7,6 +7,7 @@ function B2Object:init(world)
   --self.map = {}
 end
 
+--Creates new Edge B2Object
 function B2Object:newEdge(xS,yS,xE,yE,type)
   xE, yE = xE - xS, yE - yS
   
@@ -21,6 +22,7 @@ function B2Object:newEdge(xS,yS,xE,yE,type)
   return object
 end
 
+--Creates new Player B2Object
 function B2Object:newPlayerBody(X,Y)
   local object = {}
   object.body = love.physics.newBody( self.world, X, Y, "dynamic" )
@@ -33,6 +35,7 @@ function B2Object:newPlayerBody(X,Y)
   return object
 end
 
+--Creates new Tile B2Object
 function B2Object:newTile(X,Y,Width,Height)
   local object = {}
   
@@ -55,6 +58,7 @@ function B2Object:newTile(X,Y,Width,Height)
   return object
 end
 
+--Creates new Box B2Object
 function B2Object:newBox(X,Y,Width,Height,type)
   
   local object = {}

@@ -9,16 +9,19 @@ function HUD:init()
   self.data[3] = {heart=6,score="0",gems={blue=false,green=false,red=false,yellow=false},keys={blue=false,green=false,red=false,yellow=false}}
 end
 
+--Sets witch player HUD to show on the screen
 function HUD:setPlayer(num)
   self.player = UI:forceNum(num)
 end
 
+--Adds coins to the player
 function HUD:addScore(num,playernum)
   local playernum = playernum or self.player
   local score = tonumber(self.data[playernum].score)
   self.data[playernum].score = tostring(score+num)
 end
 
+--The hud draw function that should be called at love.draw
 function HUD:draw()
   if not self.player then return end
   local State = ""
@@ -61,6 +64,7 @@ function HUD:draw()
   UI:Draw("hud_coins",OrgineX+CT*5+CT*26-26+5,10)
 end
 
+--This function is use to splite the number to table, with number 50105 will a table like this {5,0,1,0,5}
 function HUD:numToTable(num)
   num = tostring(num)
   local numChar, numTable = "",{}

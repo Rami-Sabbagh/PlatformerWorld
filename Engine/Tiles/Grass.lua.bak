@@ -47,8 +47,8 @@ function Tile:buildbatch(marker,map,spritebatch,spritemap,mapsize)
   end
   
   love.graphics.setColor(marker.color or {255,255,255,255})
-  local frame = spritemap[self.Image..self.State..".png"]
-  local Quad = love.graphics.newQuad(frame.x,frame.y,frame.w,frame.h,mapsize.width,mapsize.height)
+  local frame = spritemap[self.Image..self.State]
+  local Quad = love.graphics.newQuad(frame.x,frame.y,frame.width,frame.height,mapsize.width,mapsize.height)
   spritebatch:add(Quad,X,Y)
   --UI:Draw("sign"..self.State..self.hover,X,Y,70,70)
 end

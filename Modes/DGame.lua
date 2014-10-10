@@ -30,6 +30,16 @@ function DGame:init(Map)
   
   self.LevelLoader = LevelLoader:new(_World)
   self.LevelLoader:loadMap(self.DevMap)
+  self.LevelLoader:buildMapBatch()
+  
+  if love.system.getOS() == "Android" or _AndroidDebug then
+    self.focusPlayer = 2
+    if not self.Players[2] then self.Players[2] = Player:new(500,0,2,4) end
+    _HUD:setPlayer(self.focusPlayer)
+    _Joy = Joystick:new(25,_Height-86,1)
+    _JoyUp = Joystick:new(_Width-85,_Height-85,2)
+    _JoyDown = Joystick:new(_Width-155,_Height-85,3)
+  end
 end
 
 function DGame:update(dt)
@@ -55,12 +65,6 @@ function DGame:update(dt)
     self.focusPlayer = 3
     if not self.Players[3] then self.Players[3] = Player:new(_Width/2,0,3) end
     _HUD:setPlayer(self.focusPlayer)
-  end
-  
-  if _Keys["escape"] then
-    _Camera = nil
-    self.LevelLoader:destroyMap()
-    return LevelEditor:new(self.DevMap)
   end
   
   if self.focusPlayer and self.Players[self.focusPlayer] ~= nil then _Camera:lookAt(self.Players[self.focusPlayer].X,self.Players[self.focusPlayer].Y) end
@@ -95,19 +99,30 @@ function DGame:fade()
     end
     love.graphics.setColor(255,255,255,255)
   end
+  if _Joy then _Joy:draw() end
+  if _JoyUp then _JoyUp:draw() end
+  if _JoyDown then _JoyDown:draw() end
+end
+
+function DGame:touch(touch)
+  _Joy:touch(touch)
+  _JoyUp:touch(touch)
+  _JoyDown:touch(touch)
 end
 
 function DGame:buildWorld()
   local Width = _Width-0
   local Height = _Height-0
-  --[[B2Object:newEdge(0,0,Width,0)
-  B2Object:newEdge(Width,0,Width,Height)
-  B2Object:newEdge(Width,Height,0,Height)
-  B2Object:newEdge(0,Height,0,0)]]--
 end
 
 function DGame:keypressed(key, isrepeat)
   if key == "f1" then self.debugWorld = not self.debugWorld end
+  if key == "escape" then
+    _Camera = nil
+    _Joy = nil
+    self.LevelLoader:destroyMap()
+    return LevelEditor:new(self.DevMap)
+  end
 end
 
 function DGame:debugWorldDraw(world)
@@ -138,8 +153,7 @@ function DGame:debugWorldDraw(world)
          
          love.graphics.setLineWidth(1)
          if (shapeType == "circle") then
-            local x,y = fixture:getMassData() --0.9.0 missing circleshape:getPoint()
-            --local x,y = shape:getPoint() --0.9.1
+            local x,y = fixture:getMassData()
             local radius = shape:getRadius()
             love.graphics.circle("fill",x,y,radius,15)
             love.graphics.setColor(0,0,0,255)

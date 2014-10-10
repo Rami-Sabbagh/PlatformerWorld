@@ -8,6 +8,7 @@ function Tile:init()
 	self.hover = "Bronze"
   self.thumbnail = "coin"..self.hover
 	self.snap = 70
+  self.dynamic = true
 end
 
 function Tile:create(marker,map)

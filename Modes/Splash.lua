@@ -6,7 +6,11 @@ require 'Modes.Loading'
 Splash = class:new()
 
 function Splash:init()
-  self.LOGO = love.graphics.newImage("Lib/RL4G/RL4G_LOGO.png")
+  if love.system.getOS() == "Android" or _AndroidDebug then
+    self.LOGO = love.graphics.newImage("Lib/RL4G/RL4G_LOGO_2Lines_Android.png")
+  else
+    self.LOGO = love.graphics.newImage("Lib/RL4G/RL4G_LOGO.png")
+  end
   
   self.alpha = 255
   self.stage = 1

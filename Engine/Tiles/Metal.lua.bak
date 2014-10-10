@@ -4,10 +4,10 @@
 Tile = class:new()
 
 function Tile:init()
-	self.name = "Grass"
+	self.name = "Metal"
   self.category = "Ground"
 	self.thumbnail = nil
-	self.hover = "grass"
+	self.hover = "metal"
 	self.snap = 70
 end
 
@@ -48,7 +48,7 @@ function Tile:buildbatch(marker,map,spritebatch,spritemap,mapsize)
   
   love.graphics.setColor(marker.color or {255,255,255,255})
   local frame = spritemap[self.Image..self.State..".png"]
-  local Quad = love.graphics.newQuad(frame.x,frame.y,frame.w,frame.h,mapsize.width,mapsize.height)
+  local Quad = love.graphics.newQuad(frame.x,frame.y,frame.width,frame.height,mapsize.width,mapsize.height)
   spritebatch:add(Quad,X,Y)
   --UI:Draw("sign"..self.State..self.hover,X,Y,70,70)
 end
